@@ -1,7 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.file.DuplicatesStrategy
+
 plugins {
     kotlin("jvm") version "2.4.0"
     application
-    id("io.ktor.plugin") version "3.5.2"
+    id("com.gradleup.shadow") version "9.6.1" // can use id("io.ktor.plugin") version "3.5.1" or older instead
 }
 
 application {
@@ -26,4 +29,12 @@ kotlin {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.named<ShadowJar>("shadowJar") {
+    filesMatching("META-INF/services/**") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    mergeServiceFiles()
 }

@@ -111,3 +111,27 @@ which added `shadowJar.mergeServiceFiles()` to the task.
 
 With this option, the `org.apache.poi.ss.usermodel.WorkbookProvider` service descriptor files 
 from `poi` and `poi-ooxml` are merged correctly, which solves the problem.
+
+2. Use the Shadow plugin with correct duplicates strategy and resource transformer
+
+If you use the Shadow plugin (or the Ktor plugin with the version older than 3.5.2), you need to:
+    - override the default `EXCLUDE` duplicates strategy with `INCLUDE` 
+(so that the Gradle task does not attempt to prevent duplicates), and
+    - set up a `ResourceTransformer` with `mergeServiceFiles()`.
+
+```
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.file.DuplicatesStrategy
+
+tasks.named<ShadowJar>("shadowJar") {
+    filesMatching("META-INF/services/**") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    mergeServiceFiles()
+}
+```
+
+See https://gradleup.com/shadow/configuration/merging/ for details.
+
+This configuration also solves the problem.
