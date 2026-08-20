@@ -38,3 +38,49 @@ Exception in thread "main" java.io.IOException: Your InputStream was neither an 
     
 This is the exception reported in the issue.
   
+## Diagnostics
+
+1. Check the `poi` and `poi-ooxml` jars in the project
+    - `poi` contains the `HSSFWorkbookFactory.class` file:
+`.gradle/caches/modules-2/files-2.1/org.apache.poi/poi/5.2.2/5513d31545085c33809c4b6553c2009fd19a6016/poi-5.2.2.jar!/org/apache/poi/hssf/usermodel/HSSFWorkbookFactory.class`
+and the service descriptor for the corresponding WorkbookProvider:
+`.gradle/caches/modules-2/files-2.1/org.apache.poi/poi/5.2.2/5513d31545085c33809c4b6553c2009fd19a6016/poi-5.2.2.jar!/META-INF/services/org.apache.poi.ss.usermodel.WorkbookProvider`
+with the following content: `org.apache.poi.hssf.usermodel.HSSFWorkbookFactory`
+
+    - `poi-ooxml` contains the `XSSFWorkbookFactory.class` file:
+`.gradle/caches/modules-2/files-2.1/org.apache.poi/poi-ooxml/5.2.2/a201b5bdc92c0fae4bed4b8e5546388c4c2f9eb0/poi-ooxml-5.2.2.jar!/org/apache/poi/xssf/usermodel/XSSFWorkbookFactory.class`
+and the service descriptor for the corresponding WorkbookProvider:
+`.gradle/caches/modules-2/files-2.1/org.apache.poi/poi-ooxml/5.2.2/a201b5bdc92c0fae4bed4b8e5546388c4c2f9eb0/poi-ooxml-5.2.2.jar!/META-INF/services/org.apache.poi.ss.usermodel.WorkbookProvider`
+with the following content: `org.apache.poi.xssf.usermodel.XSSFWorkbookFactory`
+
+Therefore, both packages responsible for reading `xls` and `xlsx` formats have their own `WorkbookFactory` class and their own service descriptor.
+
+2. Unpack the fat jar and check its internals
+Both `WorkbookFactory` classes are there: 
+  - `xls-parsing-issue-all/org/apache/poi/hssf/usermodel/HSSFWorkbookFactory.class`
+  - `xls-parsing-issue-all/org/apache/poi/xssf/usermodel/XSSFWorkbookFactory.class`
+
+As for the corresponding service descriptors, only one is left in the fat jar:
+`xls-parsing-issue-all/META-INF/services/org.apache.poi.ss.usermodel.WorkbookProvider`
+This is a descriptor with the following content: `org.apache.poi.xssf.usermodel.XSSFWorkbookFactory`,
+which is for the module responsible for reading `xlsx`.
+And the service descriptor for `poi`, with `org.apache.poi.hssf.usermodel.HSSFWorkbookFactory`, is missing.
+
+3. Add the missing class name to the service descriptor, pack the jar back and run it
+
+    - Add the line `org.apache.poi.hssf.usermodel.HSSFWorkbookFactory` to the file in the jar:
+    `xls-parsing-issue-all/META-INF/services/org.apache.poi.ss.usermodel.WorkbookProvider`
+    so the content of the file becomes:
+    
+    ```
+    org.apache.poi.hssf.usermodel.HSSFWorkbookFactory
+    org.apache.poi.xssf.usermodel.XSSFWorkbookFactory
+    ```
+
+    - Pack the jar: `jar cfm ../app-modified.jar META-INF/MANIFEST.MF .` 
+
+    - Run it:
+        - `java -jar build/libs/app-modified.jar data/sample.xls` - SUCCESSFUL
+        - `java -jar build/libs/app-modified.jar data/sample2.xlsx` - SUCCESSFUL
+
+Clearly, after this change the problem disappears.
