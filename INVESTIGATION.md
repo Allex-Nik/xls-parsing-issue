@@ -135,3 +135,13 @@ tasks.named<ShadowJar>("shadowJar") {
 See https://gradleup.com/shadow/configuration/merging/ for details.
 
 This configuration also solves the problem.
+
+3. Use distribution instead of a fat jar
+
+If using fat jar is not necessary, you can also pack the project as distribution: `./gradlew installDist`.
+
+Then it can be run without problems:
+    - `build/install/xls-parsing-issue/bin/xls-parsing-issue data/sample.xls` - SUCCESS
+    - `build/install/xls-parsing-issue/bin/xls-parsing-issue data/sample2.xlsx` - SUCCESS
+
+To put it into an archive, use `./gradlew distZip`.
