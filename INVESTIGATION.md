@@ -145,3 +145,15 @@ Then it can be run without problems:
     - `build/install/xls-parsing-issue/bin/xls-parsing-issue data/sample2.xlsx` - SUCCESS
 
 To put it into an archive, use `./gradlew distZip`.
+
+4. Register POI providers manually in `dataframe-excel`
+
+This is what we could do in the `Kotlin DataFrame` library: https://github.com/Kotlin/dataframe/pull/2038
+
+It doesn't fix the jar, it just registers `HSSFWorkbookFactory` and `XSSFWorkbookFactory` 
+when a workbook is created in `xlsx.kt` (because `.class` files are not missing).
+
+`+`: users can use any `Ktor` or `Shadow` versions.
+`-`: the jar is still broken.
+`-`: `HSSFWorkbookFactory` and `XSSFWorkbookFactory` are annotated as internal: not guaranteed to be available.
+`-`: no clear need, given that packaging can be fixed by the methods mentioned above.
