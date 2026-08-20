@@ -84,3 +84,30 @@ And the service descriptor for `poi`, with `org.apache.poi.hssf.usermodel.HSSFWo
         - `java -jar build/libs/app-modified.jar data/sample2.xlsx` - SUCCESSFUL
 
 Clearly, after this change the problem disappears.
+
+## Solutions
+
+1. Use Ktor 3.5.2+
+
+The issue disappears if we create and run the jar using the `buildFatJar` gradle task from Ktor 3.5.2+.
+Other dependencies need to be compatible with this Ktor version. 
+In this project, the solution was verified with the following dependencies:
+
+```
+kotlin 2.4.0
+ktor 3.5.2
+dataframe-excel:1.0.0-rc01
+Gradle 9.0
+```
+
+Why it works:
+Ktor 3.5.2 release (August 4, 2026) reports the following bugfix: 
+KTOR-8992 HoconConfigLoader is not loaded when ktor-server-config-yaml on the classpath.
+The link to the ticket: https://youtrack.jetbrains.com/issue/KTOR-8992
+
+Addressing this ticket included the following commit: 
+https://github.com/ktorio/ktor-build-plugins/commit/11489c012aa0c6a47e0565684c22a0047af7b81d
+which added `shadowJar.mergeServiceFiles()` to the task.
+
+With this option, the `org.apache.poi.ss.usermodel.WorkbookProvider` service descriptor files 
+from `poi` and `poi-ooxml` are merged correctly, which solves the problem.

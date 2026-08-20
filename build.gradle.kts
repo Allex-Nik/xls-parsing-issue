@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.8.22"
+    kotlin("jvm") version "2.4.0"
     application
-    id("io.ktor.plugin") version "2.3.2"
+    id("io.ktor.plugin") version "3.5.2"
 }
 
 application {
@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:dataframe-excel:0.10.1")
+    implementation("org.jetbrains.kotlinx:dataframe-excel:1.0.0-rc01")
     testImplementation(kotlin("test"))
 }
 
